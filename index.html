@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- ============================================================
+     CipherStegano Suite — Zero-Knowledge Steganography Platform
+     Version  : 5.0
+     Author   : CipherStegano
+     License  : MIT
+
+     File Structure:
+       index.html   ← You are here (UI structure)
+       styles.css   ← All visual styling & animations
+       app.js       ← All logic (encryption, LSB, EOF embed)
+
+     How it works:
+       1. Image  → LSB injection into RGB pixel channels
+       2. Audio  → LSB injection into 16-bit PCM samples
+       3. Video  → EOF embedding after end-of-file marker
+       All payloads are AES-256-CBC encrypted before injection.
+       Zero data ever leaves the browser.
+     ============================================================ -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CipherStegano — Zero-Knowledge Steganography</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- CryptoJS: AES-256-CBC encryption library (loaded from CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- ─────────────────────────────────────────
+       BACKGROUND LAYERS
+       bg-mesh  : Animated radial gradient blobs
+       bg-grid  : Subtle dot/line grid overlay
+  ───────────────────────────────────────── -->
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
+  <!-- ─────────────────────────────────────────
+       PAGE WRAPPER
+  ───────────────────────────────────────── -->
+  <div class="wrap">
+
+    <!-- ══════════════════════════════════════
+         HEADER
+         Contains: brand logo, name, tagline,
+         and security badge pills.
+    ══════════════════════════════════════ -->
+    <header>
+      <div class="brand">
+        <div class="brand-logo">🔐</div>
+        <div>
+          <div class="brand-name">Cipher<span class="hi">Stegano</span></div>
+          <div class="brand-sub">zero-knowledge · client-side only · no uploads</div>
+        </div>
+      </div>
+
+      <!-- Security indicator pills -->
+      <div class="hpills">
+        <div class="hpill hpill-v"><span class="pdot"></span> AES-256-CBC</div>
+        <div class="hpill hpill-c"><span class="pdot"></span> LSB + EOF Engine</div>
+      </div>
+    </header>
+
+
+    <!-- ══════════════════════════════════════
+         MEDIA TYPE SELECTOR
+         Three cards: Image / Audio / Video
+         Clicking one calls switchMedia(type).
+    ══════════════════════════════════════ -->
+    <div class="media-grid">
+
+      <div class="mt active" id="mt-img" onclick="switchMedia('img')">
+        <div class="mt-glow"></div>
+        <span class="mt-em">🖼️</span>
+        <div class="mt-lbl">Image</div>
+        <div class="mt-hint">PNG · JPG · WebP · any</div>
+      </div>
+
+      <div class="mt" id="mt-aud" onclick="switchMedia('aud')">
+        <div class="mt-glow"></div>
+        <span class="mt-em">🎵</span>
+        <div class="mt-lbl">Audio</div>
+        <div class="mt-hint">WAV · MP3 · FLAC · any</div>
+      </div>
+
+      <div class="mt" id="mt-vid" onclick="switchMedia('vid')">
+        <div class="mt-glow"></div>
+        <span class="mt-em">🎬</span>
+        <div class="mt-lbl">Video</div>
+        <div class="mt-hint">MP4 · MOV · MKV · any</div>
+      </div>
+
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         IMAGE PANEL
+         Technique: LSB injection into RGB
+         pixel channels using Canvas API.
+    ══════════════════════════════════════ -->
+    <div id="panel-img" class="tab-panel on">
+
+      <!-- Encode / Decode mode toggle -->
+      <div class="mode-row">
+        <div class="mode-toggle">
+          <button class="mbtn active" onclick="switchMode('img','enc')">↑ Encode</button>
+          <button class="mbtn" onclick="switchMode('img','dec')">↓ Decode</button>
+        </div>
+      </div>
+
+      <!-- ── ENCODE SECTION ── -->
+      <div id="img-enc" class="enc-sec">
+
+        <!-- Step 1: Carrier Image Upload -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🖼️</div>
+            <span class="step-n">1</span>
+            Carrier Image
+          </div>
+
+          <div class="dz" id="dz-img"
+               ondragover="dzO(event,'dz-img')"
+               ondragleave="dzL('dz-img')"
+               ondrop="dzD(event,'dz-img',loadCImg)">
+            <input type="file" id="inp-img" accept="image/*" onchange="loadCImg(this.files[0])">
+            <span class="dz-i">🖼️</span>
+            <div class="dz-t">Drop any image here, or click to browse</div>
+            <div class="dz-s">
+              PNG · JPG · JPEG · WebP · BMP · GIF · TIFF · AVIF · ICO · SVG · and all image formats
+            </div>
+          </div>
+
+          <!-- Selected file tag (shown after file is loaded) -->
+          <div class="ftag" id="ftimg">
+            <span>🖼️</span>
+            <span class="fn" id="ftimg-n">—</span>
+            <span class="fsz" id="ftimg-s">—</span>
+            <button class="fcl" onclick="clearCImg()">×</button>
+          </div>
+
+          <!-- Image metadata chips (shown after file is loaded) -->
+          <div class="chips" id="img-chips" style="display:none">
+            <div class="chip">
+              <div class="chip-k">Dimensions</div>
+              <div class="chip-v" id="img-dims">—</div>
+            </div>
+            <div class="chip">
+              <div class="chip-k">Max Capacity</div>
+              <div class="chip-v" id="img-cap">—</div>
+            </div>
+            <div class="chip">
+              <div class="chip-k">File Size</div>
+              <div class="chip-v" id="img-fsize">—</div>
+            </div>
+            <div class="chip">
+              <div class="chip-k">Format</div>
+              <div class="chip-v" id="img-type">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Secret Payload + Password -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🔒</div>
+            <span class="step-n">2</span>
+            Secret Payload + Encryption
+          </div>
+
+          <!-- Toggle between text message and file upload -->
+          <div class="ptog">
+            <div class="ptbtn active" id="ipt-t" onclick="setPT('img','text')">📝 Secret Text</div>
+            <div class="ptbtn"        id="ipt-f" onclick="setPT('img','file')">📎 Secret File</div>
+          </div>
+
+          <!-- Text payload input -->
+          <div id="img-tp">
+            <div class="frow">
+              <label>Secret Message</label>
+              <textarea id="img-msg"
+                        placeholder="Type your hidden message..."
+                        oninput="updCap('img')">
+              </textarea>
+            </div>
+          </div>
+
+          <!-- File payload input (hidden by default) -->
+          <div id="img-fp" style="display:none">
+            <div class="dz" id="dz-si" style="padding:20px"
+                 ondragover="dzO(event,'dz-si')"
+                 ondragleave="dzL('dz-si')"
+                 ondrop="dzD(event,'dz-si', f => loadSF(f,'img'))">
+              <input type="file" id="inp-si" onchange="loadSF(this.files[0],'img')">
+              <span class="dz-i" style="font-size:22px">📎</span>
+              <div class="dz-t" style="font-size:13px">Any file — PDF, DOCX, ZIP, images, videos...</div>
+              <div class="dz-s">All file types and extensions supported</div>
+            </div>
+            <!-- Selected secret file tag -->
+            <div class="sftag" id="sft-img">
+              <span>📎</span>
+              <span class="fn" id="sft-img-n">—</span>
+              <span class="fsz" id="sft-img-s">—</span>
+              <button class="fcl" onclick="clearSF('img')">×</button>
+            </div>
+          </div>
+
+          <!-- Password field -->
+          <div class="frow" style="margin-top:14px">
+            <label>Password (AES-256 key derived via PBKDF2)</label>
+            <input type="password" id="img-pwd" placeholder="Strong passphrase...">
+          </div>
+
+          <!-- Capacity usage bar -->
+          <div class="cap-block">
+            <div class="cap-hdr">
+              <span>Capacity Used</span>
+              <span id="img-clbl">—</span>
+            </div>
+            <div class="cap-track">
+              <div class="cap-fill" id="img-cf"></div>
+            </div>
+          </div>
+
+          <!-- Noise level indicator -->
+          <div class="meta-row">
+            <div class="noise-pill">
+              <span class="nd"></span>
+              Noise level: <span id="img-noise">—</span>
+            </div>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">
+              1-bit LSB per RGB channel
+            </span>
+          </div>
+
+          <!-- Progress bar (shown during processing) -->
+          <div class="pgwrap" id="img-pg">
+            <div class="pgtrack">
+              <div class="pgfill" id="img-pf"></div>
+            </div>
+            <div class="pglbl" id="img-pl">Processing...</div>
+          </div>
+
+          <!-- Encode action button -->
+          <button class="btn-go" onclick="encImg()">
+            🔐 &nbsp; Encrypt &amp; Inject into Image
+          </button>
+
+          <!-- Status message -->
+          <div class="st" id="img-est"></div>
+        </div>
+
+        <!-- Live Visual Comparison (shown after encode) -->
+        <div class="card" id="img-prev" style="display:none">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">👁️</div>
+            Live Comparison
+          </div>
+          <div class="prev-grid">
+            <div class="pcard">
+              <div class="plbl">Original</div>
+              <canvas id="cv-orig"></canvas>
+            </div>
+            <div class="pcard">
+              <div class="plbl">Stego (injected)</div>
+              <canvas id="cv-stg"></canvas>
+            </div>
+          </div>
+          <!-- Download button (shown after encode) -->
+          <div class="bdl" id="img-dl">
+            <button class="btn-dl" onclick="dlImg()">
+              ⬇ &nbsp; Download Stego Image (PNG)
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /img-enc -->
+
+
+      <!-- ── DECODE SECTION ── -->
+      <div id="img-dec" class="dec-sec">
+
+        <!-- Upload the stego image -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🖼️</div> Stego Image</div>
+          <div class="dz" id="dz-imgd"
+               ondragover="dzO(event,'dz-imgd')"
+               ondragleave="dzL('dz-imgd')"
+               ondrop="dzD(event,'dz-imgd',loadDImg)">
+            <input type="file" id="inp-imgd" accept="image/*" onchange="loadDImg(this.files[0])">
+            <span class="dz-i">🖼️</span>
+            <div class="dz-t">Drop the stego image here</div>
+            <div class="dz-s">Any image type</div>
+          </div>
+          <div class="ftag" id="ft-imgd">
+            <span>🖼️</span>
+            <span class="fn" id="ft-imgd-n">—</span>
+          </div>
+        </div>
+
+        <!-- Password + Extract -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🔑</div> Decrypt &amp; Extract</div>
+          <div class="frow">
+            <label>Password</label>
+            <input type="password" id="imgd-pwd" placeholder="Enter the correct passphrase...">
+          </div>
+          <button class="btn-out" onclick="decImg()">🔓 &nbsp; Extract &amp; Decrypt</button>
+          <div class="st" id="imgd-st"></div>
+          <div class="divider"></div>
+          <label>Extracted Message</label>
+          <div class="outbox" id="imgd-out">
+            <span class="out-ph">Decrypted content will appear here...</span>
+            <button class="cpbtn" onclick="doCopy('imgd-out')">COPY</button>
+          </div>
+          <!-- File download result (shown when payload was a file) -->
+          <div class="fres" id="imgd-fres">
+            <span>📎</span>
+            <span class="fr-n" id="imgd-fn">—</span>
+            <button class="btn-fr" id="imgd-fb">⬇ Download</button>
+          </div>
+        </div>
+
+      </div><!-- /img-dec -->
+
+    </div><!-- /panel-img -->
+
+
+    <!-- ══════════════════════════════════════
+         AUDIO PANEL
+         Technique: LSB injection into 16-bit
+         PCM samples decoded via Web Audio API.
+         Output is always a WAV file.
+    ══════════════════════════════════════ -->
+    <div id="panel-aud" class="tab-panel">
+
+      <div class="mode-row">
+        <div class="mode-toggle">
+          <button class="mbtn active" onclick="switchMode('aud','enc')">↑ Encode</button>
+          <button class="mbtn" onclick="switchMode('aud','dec')">↓ Decode</button>
+        </div>
+      </div>
+
+      <!-- ── ENCODE SECTION ── -->
+      <div id="aud-enc" class="enc-sec">
+
+        <!-- Step 1: Carrier Audio Upload -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🎵</div>
+            <span class="step-n">1</span>
+            Carrier Audio
+          </div>
+          <div class="dz" id="dz-aud"
+               ondragover="dzO(event,'dz-aud')"
+               ondragleave="dzL('dz-aud')"
+               ondrop="dzD(event,'dz-aud',loadCAud)">
+            <input type="file" id="inp-aud" accept="audio/*" onchange="loadCAud(this.files[0])">
+            <span class="dz-i">🎵</span>
+            <div class="dz-t">Drop any audio file here</div>
+            <div class="dz-s">
+              WAV · MP3 · OGG · FLAC · AAC · M4A · OPUS · AIFF · all audio types<br>
+              Decoded to PCM via Web Audio API — output saved as WAV
+            </div>
+          </div>
+          <div class="ftag" id="ft-aud">
+            <span>🎵</span>
+            <span class="fn" id="ft-aud-n">—</span>
+            <span class="fsz" id="ft-aud-s">—</span>
+            <button class="fcl" onclick="clearCAud()">×</button>
+          </div>
+          <!-- Audio metadata chips -->
+          <div class="chips" id="aud-chips" style="display:none">
+            <div class="chip"><div class="chip-k">Sample Rate</div><div class="chip-v" id="aud-sr">—</div></div>
+            <div class="chip"><div class="chip-k">Channels</div><div class="chip-v" id="aud-ch">—</div></div>
+            <div class="chip"><div class="chip-k">Duration</div><div class="chip-v" id="aud-dur">—</div></div>
+            <div class="chip"><div class="chip-k">Max Capacity</div><div class="chip-v" id="aud-cap">—</div></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Secret Payload + Password -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🔒</div>
+            <span class="step-n">2</span>
+            Secret Payload
+          </div>
+          <div class="ptog">
+            <div class="ptbtn active" id="apt-t" onclick="setPT('aud','text')">📝 Secret Text</div>
+            <div class="ptbtn"        id="apt-f" onclick="setPT('aud','file')">📎 Secret File</div>
+          </div>
+          <div id="aud-tp">
+            <div class="frow">
+              <label>Secret Message</label>
+              <textarea id="aud-msg"
+                        placeholder="Type your hidden message..."
+                        oninput="updCap('aud')">
+              </textarea>
+            </div>
+          </div>
+          <div id="aud-fp" style="display:none">
+            <div class="dz" id="dz-sa" style="padding:20px"
+                 ondragover="dzO(event,'dz-sa')"
+                 ondragleave="dzL('dz-sa')"
+                 ondrop="dzD(event,'dz-sa', f => loadSF(f,'aud'))">
+              <input type="file" id="inp-sa" onchange="loadSF(this.files[0],'aud')">
+              <span class="dz-i" style="font-size:22px">📎</span>
+              <div class="dz-t" style="font-size:13px">Any file type</div>
+              <div class="dz-s">PDF · DOCX · ZIP · Images · all types</div>
+            </div>
+            <div class="sftag" id="sft-aud">
+              <span>📎</span>
+              <span class="fn" id="sft-aud-n">—</span>
+              <span class="fsz" id="sft-aud-s">—</span>
+              <button class="fcl" onclick="clearSF('aud')">×</button>
+            </div>
+          </div>
+          <div class="frow" style="margin-top:14px">
+            <label>Password</label>
+            <input type="password" id="aud-pwd" placeholder="Strong passphrase...">
+          </div>
+          <div class="cap-block">
+            <div class="cap-hdr"><span>Capacity Used</span><span id="aud-clbl">—</span></div>
+            <div class="cap-track"><div class="cap-fill" id="aud-cf"></div></div>
+          </div>
+          <div class="pgwrap" id="aud-pg">
+            <div class="pgtrack"><div class="pgfill" id="aud-pf"></div></div>
+            <div class="pglbl" id="aud-pl">Processing...</div>
+          </div>
+          <button class="btn-go" onclick="encAud()">🔐 &nbsp; Encrypt &amp; Inject into Audio</button>
+          <div class="st" id="aud-est"></div>
+          <div class="bdl" id="aud-dl">
+            <button class="btn-dl" onclick="dlAud()">⬇ &nbsp; Download Stego WAV</button>
+          </div>
+        </div>
+
+      </div><!-- /aud-enc -->
+
+
+      <!-- ── DECODE SECTION ── -->
+      <div id="aud-dec" class="dec-sec">
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🎵</div> Stego WAV File</div>
+          <div class="dz" id="dz-audd"
+               ondragover="dzO(event,'dz-audd')"
+               ondragleave="dzL('dz-audd')"
+               ondrop="dzD(event,'dz-audd',loadDAud)">
+            <input type="file" id="inp-audd" accept=".wav,audio/wav" onchange="loadDAud(this.files[0])">
+            <span class="dz-i">🎵</span>
+            <div class="dz-t">Drop the stego WAV file</div>
+            <div class="dz-s">WAV only (output from encoding)</div>
+          </div>
+          <div class="ftag" id="ft-audd">
+            <span>🎵</span>
+            <span class="fn" id="ft-audd-n">—</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🔑</div> Decrypt &amp; Extract</div>
+          <div class="frow">
+            <label>Password</label>
+            <input type="password" id="audd-pwd" placeholder="Enter the correct passphrase...">
+          </div>
+          <button class="btn-out" onclick="decAud()">🔓 &nbsp; Extract &amp; Decrypt</button>
+          <div class="st" id="audd-st"></div>
+          <div class="divider"></div>
+          <label>Extracted Message</label>
+          <div class="outbox" id="audd-out">
+            <span class="out-ph">Decrypted content will appear here...</span>
+            <button class="cpbtn" onclick="doCopy('audd-out')">COPY</button>
+          </div>
+          <div class="fres" id="audd-fres">
+            <span>📎</span>
+            <span class="fr-n" id="audd-fn">—</span>
+            <button class="btn-fr" id="audd-fb">⬇ Download</button>
+          </div>
+        </div>
+      </div><!-- /aud-dec -->
+
+    </div><!-- /panel-aud -->
+
+
+    <!-- ══════════════════════════════════════
+         VIDEO PANEL
+         Technique: EOF (End-of-File) Embedding.
+         Encrypted payload is appended AFTER the
+         video's last byte with a magic signature.
+         Video players ignore trailing bytes, so
+         the video plays 100% normally.
+    ══════════════════════════════════════ -->
+    <div id="panel-vid" class="tab-panel">
+
+      <div class="mode-row">
+        <div class="mode-toggle">
+          <button class="mbtn active" onclick="switchMode('vid','enc')">↑ Encode</button>
+          <button class="mbtn" onclick="switchMode('vid','dec')">↓ Decode</button>
+        </div>
+      </div>
+
+      <!-- ── ENCODE SECTION ── -->
+      <div id="vid-enc" class="enc-sec">
+
+        <!-- Explanation box -->
+        <div class="info-box">
+          <strong>🎬 EOF Embedding Technique</strong><br>
+          Encrypted data is appended <strong>after the video's end-of-file marker</strong>
+          with a cryptographic signature. All video players ignore trailing bytes —
+          your video plays perfectly. No quality loss. No frame modification.
+          Works with any codec.
+        </div>
+
+        <!-- Step 1: Carrier Video Upload -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🎬</div>
+            <span class="step-n">1</span>
+            Carrier Video
+          </div>
+          <div class="dz" id="dz-vid"
+               ondragover="dzO(event,'dz-vid')"
+               ondragleave="dzL('dz-vid')"
+               ondrop="dzD(event,'dz-vid',loadCVid)">
+            <input type="file" id="inp-vid" accept="video/*" onchange="loadCVid(this.files[0])">
+            <span class="dz-i">🎬</span>
+            <div class="dz-t">Drop any video file here</div>
+            <div class="dz-s">
+              MP4 · MOV · AVI · MKV · WebM · WMV · FLV · TS · all video types<br>
+              No size limit — processed entirely in your browser
+            </div>
+          </div>
+          <div class="ftag" id="ft-vid">
+            <span>🎬</span>
+            <span class="fn" id="ft-vid-n">—</span>
+            <span class="fsz" id="ft-vid-s">—</span>
+            <button class="fcl" onclick="clearCVid()">×</button>
+          </div>
+          <div class="chips" id="vid-chips" style="display:none">
+            <div class="chip"><div class="chip-k">File Size</div><div class="chip-v" id="vid-fsize">—</div></div>
+            <div class="chip"><div class="chip-k">Format</div><div class="chip-v" id="vid-type">—</div></div>
+            <div class="chip"><div class="chip-k">Capacity</div><div class="chip-v">Unlimited</div></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Secret Payload + Password -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle">
+            <div class="cicon">🔒</div>
+            <span class="step-n">2</span>
+            Secret Payload
+          </div>
+          <div class="ptog">
+            <div class="ptbtn active" id="vpt-t" onclick="setPT('vid','text')">📝 Secret Text</div>
+            <div class="ptbtn"        id="vpt-f" onclick="setPT('vid','file')">📎 Secret File</div>
+          </div>
+          <div id="vid-tp">
+            <div class="frow">
+              <label>Secret Message</label>
+              <textarea id="vid-msg"
+                        placeholder="Type your hidden message..."
+                        oninput="updCap('vid')">
+              </textarea>
+            </div>
+          </div>
+          <div id="vid-fp" style="display:none">
+            <div class="dz" id="dz-sv" style="padding:20px"
+                 ondragover="dzO(event,'dz-sv')"
+                 ondragleave="dzL('dz-sv')"
+                 ondrop="dzD(event,'dz-sv', f => loadSF(f,'vid'))">
+              <input type="file" id="inp-sv" onchange="loadSF(this.files[0],'vid')">
+              <span class="dz-i" style="font-size:22px">📎</span>
+              <div class="dz-t" style="font-size:13px">Any file type</div>
+              <div class="dz-s">PDF · DOCX · ZIP · Images · all types</div>
+            </div>
+            <div class="sftag" id="sft-vid">
+              <span>📎</span>
+              <span class="fn" id="sft-vid-n">—</span>
+              <span class="fsz" id="sft-vid-s">—</span>
+              <button class="fcl" onclick="clearSF('vid')">×</button>
+            </div>
+          </div>
+          <div class="frow" style="margin-top:14px">
+            <label>Password</label>
+            <input type="password" id="vid-pwd" placeholder="Strong passphrase...">
+          </div>
+          <div class="cap-block">
+            <div class="cap-hdr"><span>Payload Size</span><span id="vid-clbl">—</span></div>
+            <div class="cap-track"><div class="cap-fill" id="vid-cf"></div></div>
+          </div>
+          <div class="pgwrap" id="vid-pg">
+            <div class="pgtrack"><div class="pgfill" id="vid-pf"></div></div>
+            <div class="pglbl" id="vid-pl">Processing...</div>
+          </div>
+          <button class="btn-go" onclick="encVid()">🔐 &nbsp; Encrypt &amp; Embed in Video</button>
+          <div class="st" id="vid-est"></div>
+          <div class="bdl" id="vid-dl">
+            <button class="btn-dl" onclick="dlVid()">⬇ &nbsp; Download Stego Video</button>
+          </div>
+        </div>
+
+      </div><!-- /vid-enc -->
+
+
+      <!-- ── DECODE SECTION ── -->
+      <div id="vid-dec" class="dec-sec">
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🎬</div> Stego Video</div>
+          <div class="dz" id="dz-vidd"
+               ondragover="dzO(event,'dz-vidd')"
+               ondragleave="dzL('dz-vidd')"
+               ondrop="dzD(event,'dz-vidd',loadDVid)">
+            <input type="file" id="inp-vidd" accept="video/*" onchange="loadDVid(this.files[0])">
+            <span class="dz-i">🎬</span>
+            <div class="dz-t">Drop the stego video here</div>
+            <div class="dz-s">Any video format — must be the output from encoding</div>
+          </div>
+          <div class="ftag" id="ft-vidd">
+            <span>🎬</span>
+            <span class="fn" id="ft-vidd-n">—</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="ctitle"><div class="cicon">🔑</div> Decrypt &amp; Extract</div>
+          <div class="frow">
+            <label>Password</label>
+            <input type="password" id="vidd-pwd" placeholder="Enter the correct passphrase...">
+          </div>
+          <button class="btn-out" onclick="decVid()">🔓 &nbsp; Extract &amp; Decrypt from Video</button>
+          <div class="st" id="vidd-st"></div>
+          <div class="divider"></div>
+          <label>Extracted Message</label>
+          <div class="outbox" id="vidd-out">
+            <span class="out-ph">Decrypted content will appear here...</span>
+            <button class="cpbtn" onclick="doCopy('vidd-out')">COPY</button>
+          </div>
+          <div class="fres" id="vidd-fres">
+            <span>📎</span>
+            <span class="fr-n" id="vidd-fn">—</span>
+            <button class="btn-fr" id="vidd-fb">⬇ Download</button>
+          </div>
+        </div>
+      </div><!-- /vid-dec -->
+
+    </div><!-- /panel-vid -->
+
+
+  </div><!-- /wrap -->
+
+  <!-- Main application logic (loaded last so DOM is ready) -->
+  <script src="app.js"></script>
+
+</body>
+</html>

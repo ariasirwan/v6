@@ -1,1245 +1,213 @@
 /* ================================================================
-   CipherStegano Suite — Main Stylesheet
-   File    : styles.css
-   Version : 5.0
+   CipherStegano Suite — StegoCrypt Pro Theme (Two-Column Layout)
+   ================================================================ */
 
-   Table of Contents:
-     1.  Design Tokens (CSS Variables)
-     2.  Reset & Base
-     3.  Animated Background
-     4.  Layout Wrapper
-     5.  Header
-     6.  Media Type Selector (Image / Audio / Video)
-     7.  Mode Toggle (Encode / Decode)
-     8.  Cards
-     9.  Drop Zones
-     10. File Tags
-     11. Info Chips
-     12. Payload Type Toggle
-     13. Secret File Tag
-     14. Form Elements (label, textarea, input)
-     15. Capacity Bar
-     16. Noise Level Badge
-     17. Progress Bar
-     18. Buttons
-     19. Status Messages
-     20. Live Preview (Image Comparison)
-     21. Output Box
-     22. File Download Result
-     23. Info / Explanation Box
-     24. Tab Panels (show / hide logic)
-     25. Divider
-     26. Responsive Breakpoints
-================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
-
-/* ──────────────────────────────────────
-   1. DESIGN TOKENS
-   All colors, fonts, and spacing values
-   are stored here as CSS variables.
-────────────────────────────────────── */
 :root {
-  /* Background layers — darkest to lightest */
-  --ink : #03050a;
-  --s1  : #080d18;
-  --s2  : #0e1525;
-  --s3  : #151e32;
-  --s4  : #1c2840;
-
-  /* Border colors */
-  --line   : rgba(255, 255, 255, 0.06);
-  --line-hi: rgba(124, 58, 237, 0.5);
-
-  /* Vivid accent palette */
-  --v1: #7c3aed;  /* Violet (primary accent) */
-  --v2: #6d28d9;  /* Violet dark             */
-  --c1: #06b6d4;  /* Cyan                    */
-  --c2: #0891b2;  /* Cyan dark               */
-  --p1: #ec4899;  /* Pink                    */
-  --p2: #db2777;  /* Pink dark               */
-  --g1: #10b981;  /* Green (success)         */
-  --g2: #059669;  /* Green dark              */
-  --a1: #f59e0b;  /* Amber (warning)         */
-  --r1: #ef4444;  /* Red   (error / full)    */
-
-  /* Text hierarchy */
-  --text : #e2e8f0;  /* Primary text   */
-  --text2: #94a3b8;  /* Secondary text */
-  --text3: #475569;  /* Muted / labels */
-
-  /* Typography */
-  --font: 'Sora', sans-serif;
+  --bg: #0c0e14;
+  --surface: #13161f;
+  --surface2: #1a1e2a;
+  --border: #2a2f42;
+  --accent: #4a6cf7;
+  --accent2: #7c4af7;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #4a5568;
+  
+  --font: 'Inter', sans-serif;
   --mono: 'JetBrains Mono', monospace;
-
-  /* Border radius */
-  --r   : 16px;
-  --r-sm: 10px;
+  
+  --radius: 10px;
+  --radius-sm: 6px;
 }
 
-
-/* ──────────────────────────────────────
-   2. RESET & BASE STYLES
-────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
 body {
-  background  : var(--ink);
-  color       : var(--text);
-  font-family : var(--font);
-  min-height  : 100vh;
-  overflow-x  : hidden;
-  position    : relative;
-}
-
-
-/* ──────────────────────────────────────
-   3. ANIMATED BACKGROUND
-
-   .bg-mesh  — Two floating radial gradient
-               orbs (violet + cyan) that drift
-               slowly using CSS keyframes.
-
-   .bg-grid  — A subtle 48×48 grid overlay
-               using repeating linear-gradients.
-────────────────────────────────────── */
-.bg-mesh {
-  position       : fixed;
-  inset          : 0;
-  z-index        : 0;
-  pointer-events : none;
-  overflow       : hidden;
-}
-
-/* Top-left violet orb */
-.bg-mesh::before {
-  content    : '';
-  position   : absolute;
-  width      : 900px;
-  height     : 900px;
-  top        : -300px;
-  left       : -200px;
-  background : radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 65%);
-  animation  : floatA 18s ease-in-out infinite;
-}
-
-/* Bottom-right cyan orb */
-.bg-mesh::after {
-  content    : '';
-  position   : absolute;
-  width      : 700px;
-  height     : 700px;
-  bottom     : -200px;
-  right      : -100px;
-  background : radial-gradient(circle, rgba(6, 182, 212, 0.10) 0%, transparent 65%);
-  animation  : floatB 22s ease-in-out infinite;
-}
-
-@keyframes floatA {
-  0%,  100% { transform: translate(0, 0) scale(1); }
-  33%        { transform: translate(80px, -60px) scale(1.1); }
-  66%        { transform: translate(-40px, 80px) scale(0.95); }
-}
-
-@keyframes floatB {
-  0%,  100% { transform: translate(0, 0) scale(1); }
-  50%        { transform: translate(-60px, 40px) scale(1.08); }
-}
-
-/* Subtle grid overlay */
-.bg-grid {
-  position         : fixed;
-  inset            : 0;
-  z-index          : 0;
-  pointer-events   : none;
-  background-image :
-    linear-gradient(rgba(124, 58, 237, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
-  background-size  : 48px 48px;
-}
-
-
-/* ──────────────────────────────────────
-   4. LAYOUT WRAPPER
-   Centers content, max 1080px wide.
-────────────────────────────────────── */
-.wrap {
-  position   : relative;
-  z-index    : 1;
-  max-width  : 1080px;
-  margin     : 0 auto;
-  padding    : 0 24px 100px;
-}
-
-
-/* ──────────────────────────────────────
-   5. HEADER
-   Brand logo, name, tagline + pill badges.
-────────────────────────────────────── */
-header {
-  padding       : 36px 0 32px;
-  display       : flex;
-  align-items   : center;
-  justify-content: space-between;
-  flex-wrap     : wrap;
-  gap           : 18px;
-  border-bottom : 1px solid var(--line);
-  margin-bottom : 40px;
-}
-
-.brand {
-  display    : flex;
-  align-items: center;
-  gap        : 18px;
-}
-
-/* Gradient icon box */
-.brand-logo {
-  width         : 52px;
-  height        : 52px;
-  flex-shrink   : 0;
-  border-radius : 14px;
-  background    : linear-gradient(135deg, var(--v1), var(--c1));
-  display       : flex;
-  align-items   : center;
-  justify-content: center;
-  font-size     : 24px;
-  box-shadow    : 0 0 0 1px rgba(124, 58, 237, 0.4),
-                  0 12px 32px rgba(124, 58, 237, 0.3);
-  position      : relative;
-  overflow      : hidden;
-}
-
-/* Sheen highlight on the logo */
-.brand-logo::after {
-  content    : '';
-  position   : absolute;
-  inset      : 0;
-  background : linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 60%);
-}
-
-.brand-name {
-  font-size     : 24px;
-  font-weight   : 800;
-  letter-spacing: -0.5px;
-}
-
-/* Gradient text on the second half of the name */
-.brand-name .hi {
-  background              : linear-gradient(90deg, var(--v1), var(--c1));
-  -webkit-background-clip : text;
-  -webkit-text-fill-color : transparent;
-  background-clip         : text;
-}
-
-.brand-sub {
-  font-size     : 11px;
-  color         : var(--text3);
-  font-family   : var(--mono);
-  margin-top    : 3px;
-  letter-spacing: 0.5px;
-}
-
-/* Header security pills */
-.hpills {
-  display  : flex;
-  gap      : 8px;
-  flex-wrap: wrap;
-}
-
-.hpill {
-  padding       : 6px 14px;
-  border-radius : 20px;
-  font-family   : var(--mono);
-  font-size     : 10px;
-  letter-spacing: 0.8px;
-  display       : flex;
-  align-items   : center;
-  gap           : 6px;
-}
-
-.hpill-v {
-  background: rgba(124, 58, 237, 0.12);
-  border    : 1px solid rgba(124, 58, 237, 0.3);
-  color     : #a78bfa;
-}
-
-.hpill-c {
-  background: rgba(6, 182, 212, 0.10);
-  border    : 1px solid rgba(6, 182, 212, 0.25);
-  color     : #67e8f9;
-}
-
-/* Pulsing indicator dot */
-.pdot {
-  width        : 5px;
-  height       : 5px;
-  border-radius: 50%;
-  background   : currentColor;
-  animation    : pdot 2s infinite;
-}
-
-@keyframes pdot {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.25; }
-}
-
-
-/* ──────────────────────────────────────
-   6. MEDIA TYPE SELECTOR
-   Three cards: Image / Audio / Video.
-   Active card gets a gradient top border.
-────────────────────────────────────── */
-.media-grid {
-  display              : grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap                  : 14px;
-  margin-bottom        : 32px;
-}
-
-.mt {
-  border-radius: var(--r);
-  padding      : 20px 16px;
-  border       : 1px solid var(--line);
-  background   : var(--s2);
-  cursor       : pointer;
-  transition   : all 0.3s;
-  text-align   : center;
-  position     : relative;
-  overflow     : hidden;
-}
-
-/* Radial glow that fades in on hover / active */
-.mt .mt-glow {
-  position  : absolute;
-  inset     : 0;
-  opacity   : 0;
-  transition: opacity 0.3s;
-  background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.15), transparent 70%);
-}
-
-/* Gradient top border (shown on active) */
-.mt::after {
-  content   : '';
-  position  : absolute;
-  top       : 0;
-  left      : 0;
-  right     : 0;
-  height    : 2px;
-  background: linear-gradient(90deg, var(--v1), var(--c1), var(--p1));
-  transform : scaleX(0);
-  transition: transform 0.3s;
-}
-
-.mt:hover               { border-color: rgba(124, 58, 237, 0.3); transform: translateY(-2px); }
-.mt:hover .mt-glow      { opacity: 1; }
-.mt.active              { border-color: rgba(124, 58, 237, 0.45); background: rgba(124, 58, 237, 0.08); }
-.mt.active::after       { transform: scaleX(1); }
-.mt.active .mt-glow     { opacity: 1; }
-
-.mt-em   { font-size: 28px; margin-bottom: 10px; display: block; }
-.mt-lbl  { font-size: 14px; font-weight: 700; color: var(--text); }
-.mt-hint { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 4px; }
-
-
-/* ──────────────────────────────────────
-   7. MODE TOGGLE  (Encode / Decode)
-   Active button gets a gradient fill.
-────────────────────────────────────── */
-.mode-row {
-  display        : flex;
-  align-items    : center;
-  justify-content: space-between;
-  margin-bottom  : 26px;
-  flex-wrap      : wrap;
-  gap            : 12px;
-}
-
-.mode-toggle {
-  display   : flex;
-  gap       : 0;
-  background: var(--s2);
-  border    : 1px solid var(--line);
-  border-radius: 12px;
-  padding   : 4px;
-}
-
-.mbtn {
-  padding      : 9px 30px;
-  border       : none;
-  border-radius: 9px;
-  background   : none;
-  cursor       : pointer;
-  font-family  : var(--font);
-  font-size    : 14px;
-  font-weight  : 600;
-  color        : var(--text3);
-  transition   : all 0.2s;
-}
-
-.mbtn.active {
-  background : linear-gradient(135deg, var(--v1), var(--c1));
-  color      : #fff;
-  box-shadow : 0 4px 16px rgba(124, 58, 237, 0.35);
-}
-
-.mbtn:hover:not(.active) {
+  background: var(--bg);
   color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
+/* ── HEADER & NAV ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-inner {
+  max-width: 1100px; margin: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px; gap: 12px;
+}
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+.logo-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.logo span { color: var(--accent); }
 
-/* ──────────────────────────────────────
-   8. CARDS
-   Container for each step / section.
-   Has a decorative gradient accent bar
-   at the top (.card-accent).
-────────────────────────────────────── */
+.nav { display: flex; gap: 4px; }
+.nav-btn {
+  padding: 7px 12px; background: transparent; border: 1px solid transparent;
+  color: var(--text2); font-family: var(--font); font-size: 13px; font-weight: 500;
+  cursor: pointer; border-radius: var(--radius-sm); transition: all 0.15s;
+}
+.nav-btn:hover { color: var(--text); background: var(--surface2); }
+.nav-btn.active { color: var(--accent); background: #4a6cf715; border-color: #4a6cf740; }
+
+/* ── MAIN LAYOUT ── */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 100px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* ── MEDIA TYPE SELECTOR ── */
+.media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.mt {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 16px 10px; text-align: center; cursor: pointer; transition: all 0.15s;
+}
+.mt:hover { border-color: var(--accent); }
+.mt.active { border-color: var(--accent); background: #4a6cf710; }
+.mt-em { font-size: 24px; margin-bottom: 8px; display: block; }
+.mt-lbl { font-size: 14px; font-weight: 600; color: var(--text); }
+.mt-hint { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: var(--font); }
+.mt.active .mt-lbl { color: var(--accent); }
+
+/* ── CARDS ── */
 .card {
-  background   : var(--s2);
-  border       : 1px solid var(--line);
-  border-radius: var(--r);
-  padding      : 26px;
-  margin-bottom: 16px;
-  position     : relative;
-  overflow     : hidden;
-  transition   : border-color 0.25s;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; height: 100%;
 }
-
-.card:hover {
-  border-color: rgba(255, 255, 255, 0.09);
-}
-
-/* Thin gradient line at the top of each card */
-.card-accent {
-  position  : absolute;
-  top       : 0;
-  left      : 24px;
-  right     : 24px;
-  height    : 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(124, 58, 237, 0.5),
-    rgba(6, 182, 212, 0.5),
-    transparent
-  );
-}
-
-/* Card section title */
 .ctitle {
-  display        : flex;
-  align-items    : center;
-  gap            : 10px;
-  font-size      : 12px;
-  font-weight    : 700;
-  text-transform : uppercase;
-  letter-spacing : 1.5px;
-  color          : var(--text2);
-  margin-bottom  : 20px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
 }
+.cicon { font-size: 16px; }
 
-/* Small icon box inside card title */
-.cicon {
-  width          : 30px;
-  height         : 30px;
-  border-radius  : 8px;
-  display        : flex;
-  align-items    : center;
-  justify-content: center;
-  font-size      : 14px;
-  background     : linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(6, 182, 212, 0.2));
-  border         : 1px solid rgba(124, 58, 237, 0.2);
-}
-
-/* Numbered step badge */
-.step-n {
-  width          : 20px;
-  height         : 20px;
-  border-radius  : 50%;
-  flex-shrink    : 0;
-  background     : linear-gradient(135deg, var(--v1), var(--c1));
-  display        : flex;
-  align-items    : center;
-  justify-content: center;
-  font-size      : 10px;
-  font-weight    : 800;
-  color          : #fff;
-  box-shadow     : 0 2px 8px rgba(124, 58, 237, 0.4);
-}
-
-
-/* ──────────────────────────────────────
-   9. DROP ZONES
-   Dashed-border upload areas.
-   Glow effect appears on hover / drag.
-────────────────────────────────────── */
+/* ── DROP ZONES ── */
 .dz {
-  border       : 2px dashed rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding      : 38px 20px;
-  text-align   : center;
-  cursor       : pointer;
-  transition   : all 0.3s;
-  position     : relative;
-  overflow     : hidden;
-  background   : rgba(255, 255, 255, 0.015);
+  border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 24px 16px;
+  text-align: center; cursor: pointer; transition: all 0.2s; background: transparent;
+  min-height: 130px; display: flex; flex-direction: column; justify-content: center; position: relative;
 }
+.dz input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.dz:hover, .dz.over { border-color: var(--accent); background: #4a6cf708; }
+.dz-i { font-size: 32px; margin-bottom: 8px; }
+.dz-t { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 4px; }
+.dz-s { font-family: var(--font); font-size: 11px; color: var(--text3); }
 
-/* Radial glow (fades in on hover) */
-.dz::before {
-  content   : '';
-  position  : absolute;
-  inset     : 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.08), transparent 60%);
-  opacity   : 0;
-  transition: opacity 0.3s;
+/* ── INPUTS & FORMS ── */
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+textarea, input[type="password"], input[type="text"] {
+  width: 100%; background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); padding: 10px 12px;
+  font-family: var(--font); font-size: 13px; border-radius: var(--radius-sm); outline: none; transition: 0.15s;
 }
+textarea:focus, input:focus { border-color: var(--accent); }
+textarea { min-height: 100px; resize: vertical; }
 
-.dz:hover,
-.dz.over {
-  border-color: rgba(124, 58, 237, 0.5);
-}
-
-.dz:hover::before,
-.dz.over::before {
-  opacity: 1;
-}
-
-/* The actual <input> is hidden but fills the drop zone */
-.dz input[type="file"] {
-  position: absolute;
-  inset   : 0;
-  opacity : 0;
-  cursor  : pointer;
-  width   : 100%;
-  height  : 100%;
-}
-
-.dz-i { font-size: 34px; margin-bottom: 10px; opacity: 0.75; display: block; }
-.dz-t { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-.dz-s { font-family: var(--mono); font-size: 11px; color: var(--text3); line-height: 1.7; }
-
-
-/* ──────────────────────────────────────
-   10. FILE TAGS
-   Shown below the drop zone after a file
-   is selected. Displays name + size.
-────────────────────────────────────── */
-.ftag {
-  display      : none;       /* Hidden until file is loaded */
-  align-items  : center;
-  gap          : 10px;
-  border-radius: 10px;
-  padding      : 11px 15px;
-  margin-top   : 10px;
-  font-family  : var(--mono);
-  font-size    : 12px;
-  background   : rgba(124, 58, 237, 0.08);
-  border       : 1px solid rgba(124, 58, 237, 0.25);
-  color        : #a78bfa;
-}
-
-.ftag.show {
-  display: flex;
-}
-
-.fn  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fsz { color: var(--text3); white-space: nowrap; }
-
-/* Clear (×) button inside file tag */
-.fcl {
-  background   : none;
-  border       : none;
-  cursor       : pointer;
-  color        : var(--text3);
-  font-size    : 18px;
-  padding      : 0 4px;
-  transition   : color 0.15s;
-  flex-shrink  : 0;
-  line-height  : 1;
-}
-
-.fcl:hover {
-  color: var(--r1);
-}
-
-
-/* ──────────────────────────────────────
-   11. INFO CHIPS
-   Small metadata tiles (dimensions,
-   capacity, sample rate, etc.)
-────────────────────────────────────── */
-.chips {
-  display  : flex;
-  flex-wrap: wrap;
-  gap      : 8px;
-  margin-top: 14px;
-}
-
-.chip {
-  background   : var(--s3);
-  border       : 1px solid var(--line);
-  border-radius: 9px;
-  padding      : 9px 13px;
-  font-family  : var(--mono);
-}
-
-.chip-k {
-  font-size     : 9px;
-  color         : var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom : 4px;
-}
-
-/* Gradient text for chip values */
-.chip-v {
-  font-size               : 14px;
-  font-weight             : 500;
-  background              : linear-gradient(90deg, var(--c1), var(--v1));
-  -webkit-background-clip : text;
-  -webkit-text-fill-color : transparent;
-  background-clip         : text;
-}
-
-
-/* ──────────────────────────────────────
-   12. PAYLOAD TYPE TOGGLE
-   "Secret Text" vs "Secret File" switch.
-────────────────────────────────────── */
-.ptog {
-  display      : flex;
-  gap          : 8px;
-  margin-bottom: 16px;
-}
-
+/* ── PAYLOAD TYPE TOGGLE ── */
+.ptog { display: flex; gap: 8px; margin-bottom: 16px; }
 .ptbtn {
-  flex         : 1;
-  padding      : 11px 12px;
-  border       : 1px solid var(--line);
-  border-radius: 10px;
-  background   : var(--s3);
-  color        : var(--text3);
-  font-family  : var(--font);
-  font-size    : 13px;
-  font-weight  : 600;
-  cursor       : pointer;
-  transition   : all 0.2s;
-  text-align   : center;
+  flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface2); color: var(--text2); font-family: var(--font);
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.ptbtn:hover { border-color: var(--accent2); }
+.ptbtn.active { border-color: var(--accent2); background: #7c4af710; color: var(--accent2); }
+
+/* ── PROGRESS & CAPACITY ── */
+.cap-block { margin-top: 16px; margin-bottom: 16px; }
+.cap-hdr { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.cap-hdr span:last-child { color: var(--text2); }
+.cap-track, .pgtrack { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.cap-fill, .pgfill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; width: 0%; }
+.cap-fill.warn { background: var(--orange); }
+.cap-fill.full { background: var(--red); }
+.pgwrap { display: none; margin-top: 16px; }
+.pgwrap.on { display: block; }
+.pgfill { background: var(--accent2); }
+.pglbl { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; }
+
+/* ── FILE TAGS & CHIPS ── */
+.ftag, .sftag {
+  display: none; align-items: center; gap: 10px; margin-top: 12px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 8px 12px; color: var(--text); font-family: var(--font); font-size: 12px;
+}
+.ftag.show, .sftag.show { display: flex; }
+.fn { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fsz { color: var(--text3); }
+.fcl { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; padding: 0 4px; }
+.fcl:hover { color: var(--red); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; }
+.chip-k { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+.chip-v { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* ── BUTTONS ── */
+.btn-go, .btn-out, .btn-dl {
+  width: 100%; padding: 12px; border: none; font-family: var(--font); font-size: 14px; font-weight: 600;
+  cursor: pointer; border-radius: var(--radius-sm); transition: 0.15s; display: flex; align-items: center; justify-content: center; min-height: 46px;
+}
+.btn-go { background: var(--accent); color: #fff; margin-top: 16px; }
+.btn-go:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-out { background: var(--surface2); border: 1px solid var(--border); color: var(--text); margin-top: 16px; }
+.btn-out:hover { border-color: var(--accent); color: var(--accent); }
+.bdl { display: none; margin-top: 12px; }
+.bdl.show { display: block; }
+.btn-dl { background: #22c55e15; color: var(--green); border: 1px solid #22c55e40; }
+.btn-dl:hover { background: #22c55e25; }
+
+/* ── STATUS MESSAGES & OUTPUT ── */
+.st { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-top: 16px; border: 1px solid transparent; display: none; }
+.st.on { display: block; }
+.st.ok { background: #22c55e15; border-color: #22c55e40; color: var(--green); }
+.st.err { background: #ef444415; border-color: #ef444440; color: var(--red); }
+.st.info { background: #4a6cf715; border-color: #4a6cf740; color: var(--accent); }
+
+.outbox { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; color: var(--text); font-size: 13px; min-height: 75px; word-break: break-all; position: relative; }
+.out-ph { color: var(--text3); font-style: italic; }
+.cpbtn { position: absolute; top: 8px; right: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text2); border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; transition: 0.15s; }
+.cpbtn:hover { border-color: var(--accent); color: var(--accent); }
+
+.fres { display: none; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-top: 12px; }
+.fres.show { display: flex; }
+.fr-n { flex: 1; color: var(--text); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-fr { padding: 6px 14px; background: #4a6cf715; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-size: 12px; cursor: pointer; }
+
+/* ── INFO BOX & PREVIEW ── */
+.info-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; font-size: 13px; color: var(--text2); line-height: 1.6; }
+.info-box strong { color: var(--text); }
+.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pcard { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.plbl { font-size: 11px; color: var(--text2); padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.pcard canvas { width: 100%; display: block; background: #000; max-height: 200px; object-fit: contain; }
+
+/* ── TAB PANELS ── */
+.tab-panel { display: none; animation: fadeIn 0.2s ease; }
+.tab-panel.on { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .two-col { grid-template-columns: 1fr; }
+  .card { height: auto; }
 }
-
-.ptbtn:hover:not(.active) {
-  border-color: rgba(124, 58, 237, 0.3);
-  color       : var(--text2);
-}
-
-.ptbtn.active {
-  border-color: rgba(124, 58, 237, 0.5);
-  background  : rgba(124, 58, 237, 0.12);
-  color       : #c4b5fd;
-}
-
-
-/* ──────────────────────────────────────
-   13. SECRET FILE TAG
-   Pink variant for the hidden file upload.
-────────────────────────────────────── */
-.sftag {
-  display      : none;
-  align-items  : center;
-  gap          : 10px;
-  border-radius: 10px;
-  padding      : 11px 15px;
-  margin-top   : 10px;
-  font-family  : var(--mono);
-  font-size    : 12px;
-  background   : rgba(236, 72, 153, 0.08);
-  border       : 1px solid rgba(236, 72, 153, 0.25);
-  color        : #f9a8d4;
-}
-
-.sftag.show {
-  display: flex;
-}
-
-
-/* ──────────────────────────────────────
-   14. FORM ELEMENTS
-   Labels, textareas, and inputs.
-────────────────────────────────────── */
-label {
-  display       : block;
-  font-size     : 12px;
-  font-weight   : 600;
-  color         : var(--text2);
-  letter-spacing: 0.3px;
-  margin-bottom : 8px;
-}
-
-textarea,
-input[type="password"],
-input[type="text"] {
-  width       : 100%;
-  background  : var(--s3);
-  border      : 1px solid var(--line);
-  border-radius: 10px;
-  color       : var(--text);
-  font-family : var(--mono);
-  font-size   : 13px;
-  padding     : 12px 15px;
-  outline     : none;
-  transition  : border-color 0.2s, box-shadow 0.2s;
-  resize      : vertical;
-}
-
-textarea:focus,
-input:focus {
-  border-color: rgba(124, 58, 237, 0.5);
-  box-shadow  : 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-textarea {
-  min-height: 110px;
-}
-
-/* Spacing helper for form rows */
-.frow {
-  margin-bottom: 16px;
-}
-
-
-/* ──────────────────────────────────────
-   15. CAPACITY BAR
-   Shows how much of the carrier's
-   available space the payload will use.
-────────────────────────────────────── */
-.cap-block {
-  margin-bottom: 16px;
-}
-
-.cap-hdr {
-  display        : flex;
-  justify-content: space-between;
-  font-family    : var(--mono);
-  font-size      : 11px;
-  color          : var(--text3);
-  margin-bottom  : 7px;
-}
-
-/* Right value uses gradient text */
-.cap-hdr span:last-child {
-  background              : linear-gradient(90deg, var(--v1), var(--c1));
-  -webkit-background-clip : text;
-  -webkit-text-fill-color : transparent;
-  background-clip         : text;
-  font-weight             : 600;
-}
-
-.cap-track {
-  height       : 5px;
-  background   : var(--s4);
-  border-radius: 3px;
-  overflow     : hidden;
-}
-
-.cap-fill {
-  height       : 100%;
-  width        : 0%;
-  border-radius: 3px;
-  background   : linear-gradient(90deg, var(--v1), var(--c1));
-  transition   : width 0.4s ease, background 0.4s;
-}
-
-/* Warning state (>70% full) */
-.cap-fill.warn {
-  background: linear-gradient(90deg, var(--a1), #f97316);
-}
-
-/* Full state (>90%) */
-.cap-fill.full {
-  background: linear-gradient(90deg, var(--r1), #ff6b6b);
-}
-
-
-/* ──────────────────────────────────────
-   16. NOISE LEVEL BADGE
-   Shows the estimated LSB noise ratio
-   (imperceptible but good to monitor).
-────────────────────────────────────── */
-.meta-row {
-  display        : flex;
-  align-items    : center;
-  justify-content: space-between;
-  flex-wrap      : wrap;
-  gap            : 8px;
-  margin-bottom  : 18px;
-}
-
-.noise-pill {
-  display       : inline-flex;
-  align-items   : center;
-  gap           : 7px;
-  padding       : 6px 14px;
-  border-radius : 20px;
-  font-family   : var(--mono);
-  font-size     : 11px;
-  background    : rgba(6, 182, 212, 0.08);
-  border        : 1px solid rgba(6, 182, 212, 0.2);
-  color         : #67e8f9;
-}
-
-/* Animated noise dot */
-.nd {
-  width        : 5px;
-  height       : 5px;
-  border-radius: 50%;
-  background   : var(--c1);
-  animation    : pdot 1s infinite;
-}
-
-
-/* ──────────────────────────────────────
-   17. PROGRESS BAR
-   Displayed during encode / decode.
-   Uses a shimmer animation on the fill.
-────────────────────────────────────── */
-.pgwrap {
-  display      : none;
-  margin-top   : 13px;
-}
-
-.pgwrap.on {
-  display: block;
-}
-
-.pgtrack {
-  height       : 3px;
-  background   : var(--s4);
-  border-radius: 2px;
-  overflow     : hidden;
-}
-
-.pgfill {
-  height           : 100%;
-  width            : 0%;
-  background       : linear-gradient(90deg, var(--v1), var(--c1), var(--p1));
-  background-size  : 200% 100%;
-  animation        : shimmer 2s linear infinite;
-  transition       : width 0.15s;
-  border-radius    : 2px;
-}
-
-/* Shimmer sweep across the gradient */
-@keyframes shimmer {
-  0%   { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
-}
-
-.pglbl {
-  font-family: var(--mono);
-  font-size  : 10px;
-  color      : var(--text3);
-  text-align : center;
-  margin-top : 5px;
-}
-
-
-/* ──────────────────────────────────────
-   18. BUTTONS
-
-   .btn-go   — Primary gradient CTA
-   .btn-out  — Ghost / outline style
-   .btn-dl   — Cyan download button
-   .btn-fr   — Pink file result button
-────────────────────────────────────── */
-
-/* Primary action button (Encrypt & Inject) */
-.btn-go {
-  width         : 100%;
-  padding       : 15px;
-  background    : linear-gradient(135deg, var(--v1) 0%, var(--c1) 100%);
-  border        : none;
-  border-radius : 12px;
-  color         : #fff;
-  font-family   : var(--font);
-  font-size     : 15px;
-  font-weight   : 700;
-  cursor        : pointer;
-  transition    : all 0.25s;
-  position      : relative;
-  overflow      : hidden;
-  box-shadow    : 0 4px 20px rgba(124, 58, 237, 0.35),
-                  0 0 0 1px rgba(124, 58, 237, 0.2);
-}
-
-/* Sheen highlight that fades in on hover */
-.btn-go::before {
-  content   : '';
-  position  : absolute;
-  inset     : 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
-  opacity   : 0;
-  transition: opacity 0.25s;
-}
-
-.btn-go:hover {
-  transform : translateY(-2px);
-  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.45);
-}
-
-.btn-go:hover::before {
-  opacity: 1;
-}
-
-.btn-go:active {
-  transform: translateY(0);
-}
-
-.btn-go:disabled {
-  opacity  : 0.4;
-  cursor   : not-allowed;
-  transform: none;
-}
-
-/* Outline / ghost button (Extract & Decrypt) */
-.btn-out {
-  width         : 100%;
-  padding       : 15px;
-  background    : transparent;
-  border        : 1px solid rgba(124, 58, 237, 0.4);
-  border-radius : 12px;
-  color         : #a78bfa;
-  font-family   : var(--font);
-  font-size     : 15px;
-  font-weight   : 600;
-  cursor        : pointer;
-  transition    : all 0.25s;
-  position      : relative;
-  overflow      : hidden;
-}
-
-.btn-out::before {
-  content   : '';
-  position  : absolute;
-  inset     : 0;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(6, 182, 212, 0.08));
-  opacity   : 0;
-  transition: opacity 0.25s;
-}
-
-.btn-out:hover {
-  border-color: rgba(124, 58, 237, 0.7);
-}
-
-.btn-out:hover::before {
-  opacity: 1;
-}
-
-/* Download wrapper — hidden until encode succeeds */
-.bdl {
-  display   : none;
-  margin-top: 12px;
-}
-
-.bdl.show {
-  display: block;
-}
-
-/* Cyan download button */
-.btn-dl {
-  width         : 100%;
-  padding       : 13px;
-  background    : rgba(6, 182, 212, 0.08);
-  border        : 1px solid rgba(6, 182, 212, 0.25);
-  border-radius : 11px;
-  color         : #67e8f9;
-  font-family   : var(--font);
-  font-size     : 14px;
-  font-weight   : 600;
-  cursor        : pointer;
-  transition    : all 0.2s;
-}
-
-.btn-dl:hover {
-  background  : rgba(6, 182, 212, 0.14);
-  border-color: rgba(6, 182, 212, 0.45);
-}
-
-
-/* ──────────────────────────────────────
-   19. STATUS MESSAGES
-   Feedback shown after actions.
-   Three types: ok / err / info.
-────────────────────────────────────── */
-.st {
-  padding      : 12px 16px;
-  border-radius: 10px;
-  font-family  : var(--mono);
-  font-size    : 12px;
-  display      : none;
-  align-items  : flex-start;
-  gap          : 10px;
-  margin-top   : 12px;
-  line-height  : 1.6;
-}
-
-.st.on {
-  display: flex;
-}
-
-.st.ok {
-  background: rgba(16, 185, 129, 0.08);
-  border    : 1px solid rgba(16, 185, 129, 0.25);
-  color     : #6ee7b7;
-}
-
-.st.err {
-  background: rgba(239, 68, 68, 0.08);
-  border    : 1px solid rgba(239, 68, 68, 0.25);
-  color     : #fca5a5;
-}
-
-.st.info {
-  background: rgba(6, 182, 212, 0.08);
-  border    : 1px solid rgba(6, 182, 212, 0.25);
-  color     : #67e8f9;
-}
-
-
-/* ──────────────────────────────────────
-   20. LIVE PREVIEW  (Image Comparison)
-   Side-by-side original vs. stego canvas.
-────────────────────────────────────── */
-.prev-grid {
-  display              : grid;
-  grid-template-columns: 1fr 1fr;
-  gap                  : 12px;
-  margin-top           : 14px;
-}
-
-.pcard {
-  background   : var(--s3);
-  border       : 1px solid var(--line);
-  border-radius: 11px;
-  overflow     : hidden;
-}
-
-.plbl {
-  font-family   : var(--mono);
-  font-size     : 9px;
-  color         : var(--text3);
-  padding       : 8px 12px;
-  border-bottom : 1px solid var(--line);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.pcard canvas {
-  width      : 100%;
-  display    : block;
-  max-height : 200px;
-  object-fit : contain;
-  background : #000;
-}
-
-
-/* ──────────────────────────────────────
-   21. OUTPUT BOX
-   Displays the decrypted text message.
-────────────────────────────────────── */
-.outbox {
-  background   : var(--s3);
-  border       : 1px solid var(--line);
-  border-radius: 10px;
-  padding      : 15px;
-  font-family  : var(--mono);
-  font-size    : 13px;
-  color        : #a78bfa;
-  min-height   : 75px;
-  word-break   : break-all;
-  line-height  : 1.7;
-  position     : relative;
-}
-
-.out-ph {
-  color      : var(--text3);
-  font-style : italic;
-}
-
-/* Copy button inside the output box */
-.cpbtn {
-  position    : absolute;
-  top         : 9px;
-  right       : 9px;
-  background  : var(--s4);
-  border      : 1px solid var(--line);
-  border-radius: 6px;
-  color       : var(--text3);
-  font-family : var(--mono);
-  font-size   : 9px;
-  padding     : 4px 9px;
-  cursor      : pointer;
-  transition  : all 0.15s;
-  letter-spacing: 0.5px;
-}
-
-.cpbtn:hover {
-  color       : #a78bfa;
-  border-color: rgba(124, 58, 237, 0.4);
-}
-
-
-/* ──────────────────────────────────────
-   22. FILE DOWNLOAD RESULT
-   Pink box shown when extracted payload
-   is a file (not text).
-────────────────────────────────────── */
-.fres {
-  display      : none;
-  align-items  : center;
-  gap          : 12px;
-  background   : rgba(236, 72, 153, 0.07);
-  border       : 1px solid rgba(236, 72, 153, 0.25);
-  border-radius: 10px;
-  padding      : 14px;
-  margin-top   : 12px;
-  font-family  : var(--mono);
-}
-
-.fres.show {
-  display: flex;
-}
-
-.fr-n {
-  flex        : 1;
-  color       : #f9a8d4;
-  font-size   : 12px;
-  overflow    : hidden;
-  text-overflow: ellipsis;
-  white-space : nowrap;
-}
-
-.btn-fr {
-  padding      : 8px 18px;
-  background   : rgba(236, 72, 153, 0.12);
-  border       : 1px solid rgba(236, 72, 153, 0.35);
-  border-radius: 8px;
-  color        : #f9a8d4;
-  font-family  : var(--font);
-  font-size    : 12px;
-  font-weight  : 600;
-  cursor       : pointer;
-  transition   : all 0.15s;
-  white-space  : nowrap;
-}
-
-.btn-fr:hover {
-  background: rgba(236, 72, 153, 0.22);
-}
-
-
-/* ──────────────────────────────────────
-   23. INFO / EXPLANATION BOX
-   Amber-tinted box used on the Video
-   panel to explain EOF embedding.
-────────────────────────────────────── */
-.info-box {
-  background   : rgba(245, 158, 11, 0.06);
-  border       : 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 12px;
-  padding      : 18px 20px;
-  margin-bottom: 16px;
-  font-size    : 13px;
-  color        : var(--text2);
-  line-height  : 1.75;
-  font-family  : var(--mono);
-}
-
-.info-box strong {
-  color: #fcd34d;
-}
-
-
-/* ──────────────────────────────────────
-   24. TAB PANELS
-   Each media panel is hidden/shown via
-   the .on class toggled by JavaScript.
-────────────────────────────────────── */
-.tab-panel {
-  display: none;
-}
-
-.tab-panel.on {
-  display: block;
-}
-
-/* Encode section is visible by default */
-.enc-sec { }
-
-/* Decode section is hidden by default */
-.dec-sec {
-  display: none;
-}
-
-
-/* ──────────────────────────────────────
-   25. DIVIDER
-   Horizontal rule between sections.
-────────────────────────────────────── */
-.divider {
-  height    : 1px;
-  background: var(--line);
-  margin    : 20px 0;
-}
-
-
-/* ──────────────────────────────────────
-   26. RESPONSIVE BREAKPOINTS
-────────────────────────────────────── */
-
-/* Tablet & small desktop */
 @media (max-width: 660px) {
-  /* Stack the three media selector cards into 2 columns */
-  .media-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* Video card spans both columns */
-  .media-grid .mt:last-child {
-    grid-column: span 2;
-  }
-
-  /* Image comparison stacks vertically */
-  .prev-grid {
-    grid-template-columns: 1fr;
-  }
-
-  header {
-    flex-direction: column;
-  }
-
-  .mode-row {
-    flex-direction: column;
-    align-items   : flex-start;
-  }
-}
-
-/* Mobile */
-@media (max-width: 420px) {
-  .media-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .media-grid .mt:last-child {
-    grid-column: span 1;
-  }
+  .media-grid { grid-template-columns: 1fr; }
+  .prev-grid { grid-template-columns: 1fr; }
 }

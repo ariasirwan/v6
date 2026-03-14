@@ -1,355 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CipherStegano — Secure Steganography Suite</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CipherStegano — Secure Steganography Suite</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="bg-canvas">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-</div>
-<div class="bg-grid"></div>
-
-<header class="app-header">
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-icon">🔐</div>
-      <div>
-        <div class="logo-text">CipherStegano</div>
-        <div class="logo-badge">ZERO-KNOWLEDGE STEGANOGRAPHY</div>
-      </div>
-    </div>
-    <div class="sec-badge">
-      <span class="sec-dot"></span>
-      AES-256-GCM · PBKDF2 250k · Local Only
-    </div>
-    <div class="nav-wrap">
-      <button class="nav-btn active" id="btn-mode-enc">🔒 Encode</button>
-      <button class="nav-btn" id="btn-mode-dec">🔓 Decode</button>
-    </div>
+  <div class="bg-canvas">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
   </div>
-</header>
+  <div class="bg-grid"></div>
 
-<main class="wrap" style="padding-top:32px">
-
-  <div class="media-grid">
-    <button class="media-btn active" data-media="img">
-      <span class="mb-icon">🖼️</span>
-      <span class="mb-label">Image</span>
-      <span class="mb-hint">PNG · JPG · WebP</span>
-    </button>
-    <button class="media-btn" data-media="aud">
-      <span class="mb-icon">🎵</span>
-      <span class="mb-label">Audio</span>
-      <span class="mb-hint">WAV PCM only</span>
-    </button>
-    <button class="media-btn" data-media="vid">
-      <span class="mb-icon">🎬</span>
-      <span class="mb-label">Video</span>
-      <span class="mb-hint">MP4 · MKV · MOV</span>
-    </button>
-  </div>
-
-  <div class="panel active" id="panel-img">
-
-    <div class="mode-section active" id="img-enc">
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🖼️</span> Carrier Image</div>
-          <div class="dropzone" id="dz-img">
-            <input type="file" id="inp-img" accept="image/*">
-            <span class="dz-icon">🖼️</span>
-            <div class="dz-text">Drop image here or click to browse</div>
-            <div class="dz-sub">PNG · JPG · JPEG · WebP · BMP</div>
-          </div>
-          <div class="file-tag" id="ftag-img">
-            <span class="ft-name" id="ftag-img-name">—</span>
-            <span class="ft-size" id="ftag-img-size">—</span>
-            <button class="ft-clear" id="clear-img">×</button>
-          </div>
-          <div class="chips" id="chips-img" style="display:none">
-            <div class="chip"><div class="chip-key">Dimensions</div><div class="chip-val" id="chip-img-dims">—</div></div>
-            <div class="chip"><div class="chip-key">Capacity</div><div class="chip-val" id="chip-img-cap">—</div></div>
-            <div class="chip"><div class="chip-key">Format</div><div class="chip-val" id="chip-img-fmt">—</div></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔒</span> Secret Payload + Encryption</div>
-          <div class="ptog">
-            <button class="ptbtn active" data-panel="img" data-type="text">📝 Secret Text</button>
-            <button class="ptbtn" data-panel="img" data-type="file">📎 Secret File</button>
-          </div>
-          <div id="img-text-area">
-            <label>Secret Message</label>
-            <textarea id="img-msg" placeholder="Type your hidden message..."></textarea>
-          </div>
-          <div id="img-file-area" style="display:none">
-            <div class="dropzone" id="dz-img-sf">
-              <input type="file" id="inp-img-sf">
-              <span class="dz-icon">📎</span>
-              <div class="dz-text">Any file — PDF, ZIP, image...</div>
-            </div>
-            <div class="file-tag" id="ftag-img-sf">
-              <span class="ft-name" id="ftag-img-sf-name">—</span>
-              <span class="ft-size" id="ftag-img-sf-size">—</span>
-              <button class="ft-clear" id="clear-img-sf">×</button>
-            </div>
-          </div>
-          <div style="margin-top:16px">
-            <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
-            <input type="password" id="img-pwd" placeholder="Enter a strong passphrase...">
-          </div>
-          <div class="cap-block">
-            <div class="cap-header"><span>Capacity Used</span><span class="cap-value" id="img-cap-lbl">—</span></div>
-            <div class="cap-track"><div class="cap-fill" id="img-cap-fill"></div></div>
-          </div>
-          <div class="progress-block" id="img-enc-prog">
-            <div class="prog-track"><div class="prog-fill" id="img-enc-fill"></div></div>
-            <div class="prog-label" id="img-enc-prog-lbl">Processing...</div>
-          </div>
-          <div style="margin-top:16px"><button class="btn btn-primary" id="btn-img-enc">⚡ Encrypt & Inject into Image</button></div>
-          <div class="status" id="st-img-enc"></div>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">🔐</div>
+        <div>
+          <div class="logo-text">CipherStegano</div>
+          <div class="logo-badge">ZERO-KNOWLEDGE STEGANOGRAPHY</div>
         </div>
       </div>
-
-      <div class="card section-gap" id="img-enc-output" style="display:none">
-        <div class="card-title"><span class="card-icon">👁️</span> Live Comparison + Export</div>
-        <div class="preview-grid">
-          <div class="preview-card"><div class="preview-label">Original</div><canvas id="cv-orig"></canvas></div>
-          <div class="preview-card"><div class="preview-label">Stego Output</div><canvas id="cv-steg"></canvas></div>
-        </div>
-        <div class="download-row show" style="margin-top:16px">
-          <button class="btn btn-download" id="btn-img-dl">⬇ Download Stego PNG</button>
-        </div>
+      <div class="sec-badge">
+        <span class="sec-dot"></span>
+        AES-256-GCM · PBKDF2 250k · Local Only
+      </div>
+      <div class="nav-wrap">
+        <button class="nav-btn active" id="btn-mode-enc">🔒 Encode</button>
+        <button class="nav-btn" id="btn-mode-dec">🔓 Decode</button>
       </div>
     </div>
+  </header>
 
-    <div class="mode-section" id="img-dec">
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🖼️</span> Stego Image</div>
-          <div class="dropzone" id="dz-imgd">
-            <input type="file" id="inp-imgd" accept="image/*">
-            <span class="dz-icon">🔍</span>
-            <div class="dz-text">Drop stego image here</div>
-          </div>
-          <div class="file-tag" id="ftag-imgd"><span class="ft-name" id="ftag-imgd-name">—</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
-          <label>Password</label>
-          <input type="password" id="imgd-pwd" placeholder="Enter the correct passphrase...">
-          <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-img-dec">🔓 Extract & Decrypt</button></div>
-          <div class="status" id="st-img-dec"></div>
-          <div style="margin-top:20px">
-            <label>Extracted Content</label>
-            <div class="output-box" id="imgd-out"><span class="output-placeholder">Decrypted content will appear here...</span></div>
-            <div class="file-result" id="imgd-file-res">
-              <span class="fr-name" id="imgd-file-name">—</span>
-              <button class="fr-dl" id="imgd-file-dl">⬇ Download</button>
+  <main class="wrap" style="padding-top:32px">
+
+    <div class="media-grid">
+      <button class="media-btn active" data-media="img">
+        <span class="mb-icon">🖼️</span>
+        <span class="mb-label">Image</span>
+        <span class="mb-hint">PNG · JPG · WebP</span>
+      </button>
+      <button class="media-btn" data-media="aud">
+        <span class="mb-icon">🎵</span>
+        <span class="mb-label">Audio</span>
+        <span class="mb-hint">WAV PCM only</span>
+      </button>
+      <button class="media-btn" data-media="vid">
+        <span class="mb-icon">🎬</span>
+        <span class="mb-label">Video</span>
+        <span class="mb-hint">MP4 · MKV · MOV</span>
+      </button>
+    </div>
+
+    <div class="panel active" id="panel-img">
+
+      <div class="mode-section active" id="img-enc">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🖼️</span> Carrier Image</div>
+            <div class="dropzone" id="dz-img">
+              <input type="file" id="inp-img" accept="image/*">
+              <span class="dz-icon">🖼️</span>
+              <div class="dz-text">Drop image here or click to browse</div>
+              <div class="dz-sub">PNG · JPG · JPEG · WebP · BMP</div>
             </div>
+            <div class="file-tag" id="ftag-img">
+              <span class="ft-name" id="ftag-img-name">—</span>
+              <span class="ft-size" id="ftag-img-size">—</span>
+              <button class="ft-clear" id="clear-img">×</button>
+            </div>
+            <div class="chips" id="chips-img" style="display:none">
+              <div class="chip">
+                <div class="chip-key">Dimensions</div>
+                <div class="chip-val" id="chip-img-dims">—</div>
+              </div>
+              <div class="chip">
+                <div class="chip-key">Capacity</div>
+                <div class="chip-val" id="chip-img-cap">—</div>
+              </div>
+              <div class="chip">
+                <div class="chip-key">Format</div>
+                <div class="chip-val" id="chip-img-fmt">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔒</span> Secret Payload + Encryption</div>
+            <div class="ptog">
+              <button class="ptbtn active" data-panel="img" data-type="text">📝 Secret Text</button>
+              <button class="ptbtn" data-panel="img" data-type="file">📎 Secret File</button>
+            </div>
+            <div id="img-text-area">
+              <label>Secret Message</label>
+              <textarea id="img-msg" placeholder="Type your hidden message..."></textarea>
+            </div>
+            <div id="img-file-area" style="display:none">
+              <div class="dropzone" id="dz-img-sf">
+                <input type="file" id="inp-img-sf">
+                <span class="dz-icon">📎</span>
+                <div class="dz-text">Any file — PDF, ZIP, image...</div>
+              </div>
+              <div class="file-tag" id="ftag-img-sf">
+                <span class="ft-name" id="ftag-img-sf-name">—</span>
+                <span class="ft-size" id="ftag-img-sf-size">—</span>
+                <button class="ft-clear" id="clear-img-sf">×</button>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
+              <input type="password" id="img-pwd" placeholder="Enter a strong passphrase...">
+              <div id="img-pwd-strength" class="pwd-strength-bar" style="display:none"></div>
+            </div>
+            <div class="cap-block">
+              <div class="cap-header"><span>Capacity Used</span><span class="cap-value" id="img-cap-lbl">—</span></div>
+              <div class="cap-track">
+                <div class="cap-fill" id="img-cap-fill"></div>
+              </div>
+            </div>
+            <div class="progress-block" id="img-enc-prog">
+              <div class="prog-track">
+                <div class="prog-fill" id="img-enc-fill"></div>
+              </div>
+              <div class="prog-label" id="img-enc-prog-lbl">Processing...</div>
+            </div>
+            <div style="margin-top:16px"><button class="btn btn-primary" id="btn-img-enc">⚡ Encrypt & Inject into
+                Image</button></div>
+            <div class="status" id="st-img-enc"></div>
+          </div>
+        </div>
+
+        <div class="card section-gap" id="img-enc-output" style="display:none">
+          <div class="card-title"><span class="card-icon">👁️</span> Live Comparison + Export</div>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <div class="preview-label">Original</div><canvas id="cv-orig"></canvas>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">Stego Output</div><canvas id="cv-steg"></canvas>
+            </div>
+          </div>
+          <div class="download-row show" style="margin-top:16px">
+            <button class="btn btn-download" id="btn-img-dl">⬇ Download Stego PNG</button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="panel" id="panel-aud">
-    <div class="mode-section active" id="aud-enc">
-      <div class="info-note"><strong>WAV PCM Required</strong> — Audio steganography uses LSB embedding on raw PCM samples. Only uncompressed WAV files are supported. Convert MP3/FLAC first.</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🎵</span> Carrier WAV</div>
-          <div class="dropzone" id="dz-aud">
-            <input type="file" id="inp-aud" accept=".wav,audio/wav">
-            <span class="dz-icon">🎵</span>
-            <div class="dz-text">Drop WAV file here</div>
-            <div class="dz-sub">WAV PCM (16-bit) only</div>
-          </div>
-          <div class="file-tag" id="ftag-aud">
-            <span class="ft-name" id="ftag-aud-name">—</span>
-            <span class="ft-size" id="ftag-aud-size">—</span>
-            <button class="ft-clear" id="clear-aud">×</button>
-          </div>
-          <div class="chips" id="chips-aud" style="display:none">
-            <div class="chip"><div class="chip-key">Sample Rate</div><div class="chip-val" id="chip-aud-sr">—</div></div>
-            <div class="chip"><div class="chip-key">Capacity</div><div class="chip-val" id="chip-aud-cap">—</div></div>
-            <div class="chip"><div class="chip-key">Channels</div><div class="chip-val" id="chip-aud-ch">—</div></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔒</span> Secret Payload</div>
-          <div class="ptog">
-            <button class="ptbtn active" data-panel="aud" data-type="text">📝 Secret Text</button>
-            <button class="ptbtn" data-panel="aud" data-type="file">📎 Secret File</button>
-          </div>
-          <div id="aud-text-area">
-            <label>Secret Message</label>
-            <textarea id="aud-msg" placeholder="Type your hidden message..."></textarea>
-          </div>
-          <div id="aud-file-area" style="display:none">
-            <div class="dropzone" id="dz-aud-sf">
-              <input type="file" id="inp-aud-sf">
-              <span class="dz-icon">📎</span>
-              <div class="dz-text">Any file type</div>
+      <div class="mode-section" id="img-dec">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🖼️</span> Stego Image</div>
+            <div class="dropzone" id="dz-imgd">
+              <input type="file" id="inp-imgd" accept="image/*">
+              <span class="dz-icon">🔍</span>
+              <div class="dz-text">Drop stego image here</div>
             </div>
-            <div class="file-tag" id="ftag-aud-sf">
-              <span class="ft-name" id="ftag-aud-sf-name">—</span>
-              <span class="ft-size" id="ftag-aud-sf-size">—</span>
-              <button class="ft-clear" id="clear-aud-sf">×</button>
+            <div class="file-tag" id="ftag-imgd"><span class="ft-name" id="ftag-imgd-name">—</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
+            <label>Password</label>
+            <input type="password" id="imgd-pwd" placeholder="Enter the correct passphrase...">
+            <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-img-dec">🔓 Extract &
+                Decrypt</button></div>
+            <div class="status" id="st-img-dec"></div>
+            <div style="margin-top:20px">
+              <label>Extracted Content</label>
+              <div class="output-box" id="imgd-out"><span class="output-placeholder">Decrypted content will appear
+                  here...</span></div>
+              <div class="file-result" id="imgd-file-res">
+                <span class="fr-name" id="imgd-file-name">—</span>
+                <button class="fr-dl" id="imgd-file-dl">⬇ Download</button>
+              </div>
             </div>
-          </div>
-          <div style="margin-top:16px">
-            <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
-            <input type="password" id="aud-pwd" placeholder="Enter a strong passphrase...">
-          </div>
-          <div class="cap-block">
-            <div class="cap-header"><span>Capacity Used</span><span class="cap-value" id="aud-cap-lbl">—</span></div>
-            <div class="cap-track"><div class="cap-fill" id="aud-cap-fill"></div></div>
-          </div>
-          <div class="progress-block" id="aud-enc-prog">
-            <div class="prog-track"><div class="prog-fill" id="aud-enc-fill"></div></div>
-            <div class="prog-label" id="aud-enc-prog-lbl">Processing...</div>
-          </div>
-          <div style="margin-top:16px"><button class="btn btn-primary" id="btn-aud-enc">⚡ Encrypt & Inject into Audio</button></div>
-          <div class="status" id="st-aud-enc"></div>
-          <div class="download-row" id="aud-dl-row">
-            <button class="btn btn-download" id="btn-aud-dl">⬇ Download Stego WAV</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mode-section" id="aud-dec">
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🎵</span> Stego WAV</div>
-          <div class="dropzone" id="dz-audd">
-            <input type="file" id="inp-audd" accept=".wav,audio/wav">
-            <span class="dz-icon">🔍</span>
-            <div class="dz-text">Drop stego WAV here</div>
+    <div class="panel" id="panel-aud">
+      <div class="mode-section active" id="aud-enc">
+        <div class="info-note"><strong>WAV PCM Required</strong> — Audio steganography uses LSB embedding on raw PCM
+          samples. Only uncompressed WAV files are supported. Convert MP3/FLAC first.</div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🎵</span> Carrier WAV</div>
+            <div class="dropzone" id="dz-aud">
+              <input type="file" id="inp-aud" accept=".wav,audio/wav">
+              <span class="dz-icon">🎵</span>
+              <div class="dz-text">Drop WAV file here</div>
+              <div class="dz-sub">WAV PCM (16-bit) only</div>
+            </div>
+            <div class="file-tag" id="ftag-aud">
+              <span class="ft-name" id="ftag-aud-name">—</span>
+              <span class="ft-size" id="ftag-aud-size">—</span>
+              <button class="ft-clear" id="clear-aud">×</button>
+            </div>
+            <div class="chips" id="chips-aud" style="display:none">
+              <div class="chip">
+                <div class="chip-key">Sample Rate</div>
+                <div class="chip-val" id="chip-aud-sr">—</div>
+              </div>
+              <div class="chip">
+                <div class="chip-key">Capacity</div>
+                <div class="chip-val" id="chip-aud-cap">—</div>
+              </div>
+              <div class="chip">
+                <div class="chip-key">Channels</div>
+                <div class="chip-val" id="chip-aud-ch">—</div>
+              </div>
+            </div>
           </div>
-          <div class="file-tag" id="ftag-audd"><span class="ft-name" id="ftag-audd-name">—</span></div>
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔒</span> Secret Payload</div>
+            <div class="ptog">
+              <button class="ptbtn active" data-panel="aud" data-type="text">📝 Secret Text</button>
+              <button class="ptbtn" data-panel="aud" data-type="file">📎 Secret File</button>
+            </div>
+            <div id="aud-text-area">
+              <label>Secret Message</label>
+              <textarea id="aud-msg" placeholder="Type your hidden message..."></textarea>
+            </div>
+            <div id="aud-file-area" style="display:none">
+              <div class="dropzone" id="dz-aud-sf">
+                <input type="file" id="inp-aud-sf">
+                <span class="dz-icon">📎</span>
+                <div class="dz-text">Any file type</div>
+              </div>
+              <div class="file-tag" id="ftag-aud-sf">
+                <span class="ft-name" id="ftag-aud-sf-name">—</span>
+                <span class="ft-size" id="ftag-aud-sf-size">—</span>
+                <button class="ft-clear" id="clear-aud-sf">×</button>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
+              <input type="password" id="aud-pwd" placeholder="Enter a strong passphrase...">
+              <div id="aud-pwd-strength" class="pwd-strength-bar" style="display:none"></div>
+            </div>
+            <div class="cap-block">
+              <div class="cap-header"><span>Capacity Used</span><span class="cap-value" id="aud-cap-lbl">—</span></div>
+              <div class="cap-track">
+                <div class="cap-fill" id="aud-cap-fill"></div>
+              </div>
+            </div>
+            <div class="progress-block" id="aud-enc-prog">
+              <div class="prog-track">
+                <div class="prog-fill" id="aud-enc-fill"></div>
+              </div>
+              <div class="prog-label" id="aud-enc-prog-lbl">Processing...</div>
+            </div>
+            <div style="margin-top:16px"><button class="btn btn-primary" id="btn-aud-enc">⚡ Encrypt & Inject into
+                Audio</button></div>
+            <div class="status" id="st-aud-enc"></div>
+            <div class="download-row" id="aud-dl-row">
+              <button class="btn btn-download" id="btn-aud-dl">⬇ Download Stego WAV</button>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
-          <label>Password</label>
-          <input type="password" id="audd-pwd" placeholder="Enter the correct passphrase...">
-          <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-aud-dec">🔓 Extract & Decrypt</button></div>
-          <div class="status" id="st-aud-dec"></div>
-          <div style="margin-top:20px">
-            <label>Extracted Content</label>
-            <div class="output-box" id="audd-out"><span class="output-placeholder">Decrypted content will appear here...</span></div>
-            <div class="file-result" id="audd-file-res">
-              <span class="fr-name" id="audd-file-name">—</span>
-              <button class="fr-dl" id="audd-file-dl">⬇ Download</button>
+      </div>
+
+      <div class="mode-section" id="aud-dec">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🎵</span> Stego WAV</div>
+            <div class="dropzone" id="dz-audd">
+              <input type="file" id="inp-audd" accept=".wav,audio/wav">
+              <span class="dz-icon">🔍</span>
+              <div class="dz-text">Drop stego WAV here</div>
+            </div>
+            <div class="file-tag" id="ftag-audd"><span class="ft-name" id="ftag-audd-name">—</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
+            <label>Password</label>
+            <input type="password" id="audd-pwd" placeholder="Enter the correct passphrase...">
+            <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-aud-dec">🔓 Extract &
+                Decrypt</button></div>
+            <div class="status" id="st-aud-dec"></div>
+            <div style="margin-top:20px">
+              <label>Extracted Content</label>
+              <div class="output-box" id="audd-out"><span class="output-placeholder">Decrypted content will appear
+                  here...</span></div>
+              <div class="file-result" id="audd-file-res">
+                <span class="fr-name" id="audd-file-name">—</span>
+                <button class="fr-dl" id="audd-file-dl">⬇ Download</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="panel" id="panel-vid">
-    <div class="mode-section active" id="vid-enc">
-      <div class="info-note"><strong>EOF Embed Method</strong> — Encrypted payload is appended after the video's end-of-file marker. The video plays normally in all players. Suitable for covert transport; not adversarial steganalysis.</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🎬</span> Carrier Video</div>
-          <div class="dropzone" id="dz-vid">
-            <input type="file" id="inp-vid" accept="video/*">
-            <span class="dz-icon">🎬</span>
-            <div class="dz-text">Drop video file here</div>
-            <div class="dz-sub">MP4 · MOV · MKV · AVI · WebM</div>
+    <div class="panel" id="panel-vid">
+      <div class="mode-section active" id="vid-enc">
+        <div class="info-note"><strong>EOF Embed Method</strong> — Encrypted payload is appended after the video's
+          end-of-file marker. The video plays normally in all players. Suitable for covert transport; not adversarial
+          steganalysis.</div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🎬</span> Carrier Video</div>
+            <div class="dropzone" id="dz-vid">
+              <input type="file" id="inp-vid" accept="video/*">
+              <span class="dz-icon">🎬</span>
+              <div class="dz-text">Drop video file here</div>
+              <div class="dz-sub">MP4 · MOV · MKV · AVI · WebM</div>
+            </div>
+            <div class="file-tag" id="ftag-vid">
+              <span class="ft-name" id="ftag-vid-name">—</span>
+              <span class="ft-size" id="ftag-vid-size">—</span>
+              <button class="ft-clear" id="clear-vid">×</button>
+            </div>
+            <div class="chips" id="chips-vid" style="display:none">
+              <div class="chip">
+                <div class="chip-key">File Size</div>
+                <div class="chip-val" id="chip-vid-size">—</div>
+              </div>
+              <div class="chip">
+                <div class="chip-key">Format</div>
+                <div class="chip-val" id="chip-vid-fmt">—</div>
+              </div>
+            </div>
           </div>
-          <div class="file-tag" id="ftag-vid">
-            <span class="ft-name" id="ftag-vid-name">—</span>
-            <span class="ft-size" id="ftag-vid-size">—</span>
-            <button class="ft-clear" id="clear-vid">×</button>
-          </div>
-          <div class="chips" id="chips-vid" style="display:none">
-            <div class="chip"><div class="chip-key">File Size</div><div class="chip-val" id="chip-vid-size">—</div></div>
-            <div class="chip"><div class="chip-key">Format</div><div class="chip-val" id="chip-vid-fmt">—</div></div>
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔒</span> Secret Payload</div>
+            <div class="ptog">
+              <button class="ptbtn active" data-panel="vid" data-type="text">📝 Secret Text</button>
+              <button class="ptbtn" data-panel="vid" data-type="file">📎 Secret File</button>
+            </div>
+            <div id="vid-text-area">
+              <label>Secret Message</label>
+              <textarea id="vid-msg" placeholder="Type your hidden message..."></textarea>
+            </div>
+            <div id="vid-file-area" style="display:none">
+              <div class="dropzone" id="dz-vid-sf">
+                <input type="file" id="inp-vid-sf">
+                <span class="dz-icon">📎</span>
+                <div class="dz-text">Any file type</div>
+              </div>
+              <div class="file-tag" id="ftag-vid-sf">
+                <span class="ft-name" id="ftag-vid-sf-name">—</span>
+                <span class="ft-size" id="ftag-vid-sf-size">—</span>
+                <button class="ft-clear" id="clear-vid-sf">×</button>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
+              <input type="password" id="vid-pwd" placeholder="Enter a strong passphrase...">
+              <div id="vid-pwd-strength" class="pwd-strength-bar" style="display:none"></div>
+            </div>
+            <div class="progress-block" id="vid-enc-prog">
+              <div class="prog-track">
+                <div class="prog-fill" id="vid-enc-fill"></div>
+              </div>
+              <div class="prog-label" id="vid-enc-prog-lbl">Processing...</div>
+            </div>
+            <div style="margin-top:16px"><button class="btn btn-primary" id="btn-vid-enc">⚡ Encrypt & Embed in
+                Video</button></div>
+            <div class="status" id="st-vid-enc"></div>
+            <div class="download-row" id="vid-dl-row">
+              <button class="btn btn-download" id="btn-vid-dl">⬇ Download Stego Video</button>
+            </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔒</span> Secret Payload</div>
-          <div class="ptog">
-            <button class="ptbtn active" data-panel="vid" data-type="text">📝 Secret Text</button>
-            <button class="ptbtn" data-panel="vid" data-type="file">📎 Secret File</button>
-          </div>
-          <div id="vid-text-area">
-            <label>Secret Message</label>
-            <textarea id="vid-msg" placeholder="Type your hidden message..."></textarea>
-          </div>
-          <div id="vid-file-area" style="display:none">
-            <div class="dropzone" id="dz-vid-sf">
-              <input type="file" id="inp-vid-sf">
-              <span class="dz-icon">📎</span>
-              <div class="dz-text">Any file type</div>
+      </div>
+
+      <div class="mode-section" id="vid-dec">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🎬</span> Stego Video</div>
+            <div class="dropzone" id="dz-vidd">
+              <input type="file" id="inp-vidd" accept="video/*">
+              <span class="dz-icon">🔍</span>
+              <div class="dz-text">Drop stego video here</div>
             </div>
-            <div class="file-tag" id="ftag-vid-sf">
-              <span class="ft-name" id="ftag-vid-sf-name">—</span>
-              <span class="ft-size" id="ftag-vid-sf-size">—</span>
-              <button class="ft-clear" id="clear-vid-sf">×</button>
+            <div class="file-tag" id="ftag-vidd"><span class="ft-name" id="ftag-vidd-name">—</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
+            <label>Password</label>
+            <input type="password" id="vidd-pwd" placeholder="Enter the correct passphrase...">
+            <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-vid-dec">🔓 Extract &
+                Decrypt</button></div>
+            <div class="status" id="st-vid-dec"></div>
+            <div style="margin-top:20px">
+              <label>Extracted Content</label>
+              <div class="output-box" id="vidd-out"><span class="output-placeholder">Decrypted content will appear
+                  here...</span></div>
+              <div class="file-result" id="vidd-file-res">
+                <span class="fr-name" id="vidd-file-name">—</span>
+                <button class="fr-dl" id="vidd-file-dl">⬇ Download</button>
+              </div>
             </div>
-          </div>
-          <div style="margin-top:16px">
-            <label>Password (AES-256-GCM · PBKDF2 250k rounds)</label>
-            <input type="password" id="vid-pwd" placeholder="Enter a strong passphrase...">
-          </div>
-          <div class="progress-block" id="vid-enc-prog">
-            <div class="prog-track"><div class="prog-fill" id="vid-enc-fill"></div></div>
-            <div class="prog-label" id="vid-enc-prog-lbl">Processing...</div>
-          </div>
-          <div style="margin-top:16px"><button class="btn btn-primary" id="btn-vid-enc">⚡ Encrypt & Embed in Video</button></div>
-          <div class="status" id="st-vid-enc"></div>
-          <div class="download-row" id="vid-dl-row">
-            <button class="btn btn-download" id="btn-vid-dl">⬇ Download Stego Video</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mode-section" id="vid-dec">
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🎬</span> Stego Video</div>
-          <div class="dropzone" id="dz-vidd">
-            <input type="file" id="inp-vidd" accept="video/*">
-            <span class="dz-icon">🔍</span>
-            <div class="dz-text">Drop stego video here</div>
-          </div>
-          <div class="file-tag" id="ftag-vidd"><span class="ft-name" id="ftag-vidd-name">—</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title"><span class="card-icon">🔑</span> Decrypt & Extract</div>
-          <label>Password</label>
-          <input type="password" id="vidd-pwd" placeholder="Enter the correct passphrase...">
-          <div style="margin-top:16px"><button class="btn btn-secondary" id="btn-vid-dec">🔓 Extract & Decrypt</button></div>
-          <div class="status" id="st-vid-dec"></div>
-          <div style="margin-top:20px">
-            <label>Extracted Content</label>
-            <div class="output-box" id="vidd-out"><span class="output-placeholder">Decrypted content will appear here...</span></div>
-            <div class="file-result" id="vidd-file-res">
-              <span class="fr-name" id="vidd-file-name">—</span>
-              <button class="fr-dl" id="vidd-file-dl">⬇ Download</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </main>
 
-</main>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
+
 </html>
